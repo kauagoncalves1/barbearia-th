@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
+import { formatarDataCurta, formatarHora } from '../utils';
 
 export default function Admin() {
   const [logado, setLogado] = useState(false);
@@ -9,30 +10,26 @@ export default function Admin() {
   const [senha, setSenha] = useState('');
   const [erroLogin, setErroLogin] = useState('');
   const [agendamentos, setAgendamentos] = useState([]);
-  const [horarios, setHorarios] = useState([]);
+  const [bloqueios, setBloqueios] = useState([]);
+  const [grade, setGrade] = useState([]);
   const [aba, setAba] = useState('agendamentos');
-  const [novaData, setNovaData] = useState('');
-  const [novaHora, setNovaHora] = useState('');
+  const [novoBloqueiData, setNovoBloqueioData] = useState('');
+  const [novoBloqueioMotivo, setNovoBloqueioMotivo] = useState('');
   const [carregando, setCarregando] = useState(false);
+
+  const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setLogado(true);
-        buscarDados();
-      }
+      if (session) { setLogado(true); buscarDados(); }
     });
   }, []);
 
   async function login() {
     setErroLogin('');
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-    if (error) {
-      setErroLogin('Email ou senha incorretos.');
-    } else {
-      setLogado(true);
-      buscarDados();
-    }
+    if (error) { setErroLogin('Email ou senha incorretos.'); }
+    else { setLogado(true); buscarDados(); }
   }
 
   async function logout() {
@@ -42,59 +39,41 @@ export default function Admin() {
 
   async function buscarDados() {
     setCarregando(true);
-
-    const { data: ag } = await supabase
-      .from('agendamentos')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    const { data: hr } = await supabase
-      .from('horarios')
-      .select('*')
-      .order('data', { ascending: true })
-      .order('hora', { ascending: true });
-
+    const { data: ag } = await supabase.from('agendamentos').select('*').order('data').order('hora');
+    const { data: bl } = await supabase.from('bloqueios').select('*').order('data');
+    const { data: gr } = await supabase.from('grade_horarios').select('*').order('dia_semana');
     setAgendamentos(ag || []);
-    setHorarios(hr || []);
+    setBloqueios(bl || []);
+    setGrade(gr || []);
     setCarregando(false);
   }
 
-  async function adicionarHorario() {
-    if (!novaData || !novaHora) return;
-    await supabase.from('horarios').insert([{
-      data: novaData,
-      hora: novaHora + ':00',
-      disponivel: true,
-    }]);
-    setNovaData('');
-    setNovaHora('');
+  async function adicionarBloqueio() {
+    if (!novoBloqueiData) return;
+    await supabase.from('bloqueios').insert([{ data: novoBloqueiData, motivo: novoBloqueioMotivo }]);
+    setNovoBloqueioData('');
+    setNovoBloqueioMotivo('');
     buscarDados();
   }
 
-  async function deletarHorario(id) {
-    await supabase.from('horarios').delete().eq('id', id);
+  async function deletarBloqueio(id) {
+    await supabase.from('bloqueios').delete().eq('id', id);
     buscarDados();
   }
 
-  function getHorario(horario_id) {
-    const h = horarios.find(h => h.id === horario_id);
-    if (!h) return '-';
-    return `${formatarData(h.data)} ${formatarHora(h.hora)}`;
+  async function deletarAgendamento(id) {
+    await supabase.from('agendamentos').delete().eq('id', id);
+    buscarDados();
   }
 
-  function formatarData(data) {
-    if (!data) return '';
-    const d = new Date(data + 'T00:00:00');
-    return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
-  }
-
-  function formatarHora(hora) {
-    return hora?.slice(0, 5) || '';
+  async function toggleGrade(id, ativo) {
+    await supabase.from('grade_horarios').update({ ativo: !ativo }).eq('id', id);
+    buscarDados();
   }
 
   function formatarDataHora(dt) {
     if (!dt) return '';
-    return new Date(dt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return new Date(dt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
 
   const estilo = {
@@ -103,10 +82,12 @@ export default function Admin() {
     input: { width: '100%', backgroundColor: '#111', border: '1px solid #333', color: '#fff', padding: '14px 16px', fontSize: '14px', borderRadius: '2px', marginBottom: '16px', outline: 'none' },
     btn: { backgroundColor: '#c9a84c', color: '#0a0a0a', border: 'none', padding: '14px', fontSize: '14px', fontWeight: 'bold', letterSpacing: '2px', borderRadius: '2px', cursor: 'pointer', width: '100%' },
     btnPerigo: { backgroundColor: 'transparent', color: '#ff6b6b', border: '1px solid #ff6b6b', padding: '6px 14px', fontSize: '12px', borderRadius: '2px', cursor: 'pointer' },
-    aba: (ativo) => ({ backgroundColor: ativo ? '#c9a84c' : 'transparent', color: ativo ? '#0a0a0a' : '#aaa', border: '1px solid ' + (ativo ? '#c9a84c' : '#333'), padding: '10px 24px', fontSize: '13px', fontWeight: 'bold', letterSpacing: '1px', borderRadius: '2px', cursor: 'pointer' }),
+    btnVerde: { backgroundColor: 'transparent', color: '#25D366', border: '1px solid #25D366', padding: '6px 14px', fontSize: '12px', borderRadius: '2px', cursor: 'pointer' },
+    aba: (ativo) => ({ backgroundColor: ativo ? '#c9a84c' : 'transparent', color: ativo ? '#0a0a0a' : '#aaa', border: '1px solid ' + (ativo ? '#c9a84c' : '#333'), padding: '10px 20px', fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', borderRadius: '2px', cursor: 'pointer' }),
     tabela: { width: '100%', borderCollapse: 'collapse', fontSize: '13px' },
     th: { color: '#c9a84c', fontSize: '11px', letterSpacing: '2px', padding: '12px 16px', borderBottom: '1px solid #2a2a2a', textAlign: 'left' },
     td: { padding: '14px 16px', borderBottom: '1px solid #1a1a1a', color: '#ddd', verticalAlign: 'middle' },
+    secao: { backgroundColor: '#111', border: '1px solid #2a2a2a', borderRadius: '4px', overflow: 'auto', marginBottom: '24px' },
   };
 
   if (!logado) {
@@ -136,13 +117,15 @@ export default function Admin() {
           <button onClick={logout} style={{ ...estilo.btnPerigo, borderColor: '#555', color: '#aaa' }}>SAIR</button>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
-          <button style={estilo.aba(aba === 'agendamentos')} onClick={() => setAba('agendamentos')}>AGENDAMENTOS</button>
-          <button style={estilo.aba(aba === 'horarios')} onClick={() => setAba('horarios')}>HORARIOS</button>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '32px', flexWrap: 'wrap' }}>
+          <button style={estilo.aba(aba === 'agendamentos')} onClick={() => setAba('agendamentos')}>AGENDAMENTOS ({agendamentos.length})</button>
+          <button style={estilo.aba(aba === 'bloqueios')} onClick={() => setAba('bloqueios')}>BLOQUEIOS</button>
+          <button style={estilo.aba(aba === 'grade')} onClick={() => setAba('grade')}>GRADE DE HORARIOS</button>
         </div>
 
+        {/* Agendamentos */}
         {aba === 'agendamentos' && (
-          <div style={{ backgroundColor: '#111', border: '1px solid #2a2a2a', borderRadius: '4px', overflow: 'auto' }}>
+          <div style={estilo.secao}>
             {carregando ? (
               <p style={{ color: '#666', padding: '32px', fontSize: '14px' }}>Carregando...</p>
             ) : agendamentos.length === 0 ? (
@@ -155,11 +138,11 @@ export default function Admin() {
                     <th style={estilo.th}>WHATSAPP</th>
                     <th style={estilo.th}>SERVICO</th>
                     <th style={estilo.th}>DATA / HORA</th>
-                    <th style={estilo.th}>CRIADO EM</th>
+                    <th style={estilo.th}>ACAO</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {agendamentos.map((ag) => (
+                  {agendamentos.map(ag => (
                     <tr key={ag.id}>
                       <td style={estilo.td}>{ag.cliente_nome}</td>
                       <td style={estilo.td}>
@@ -167,9 +150,11 @@ export default function Admin() {
                           {ag.cliente_whatsapp}
                         </a>
                       </td>
-                      <td style={estilo.td}>{ag.servico}</td>
-                      <td style={estilo.td}>{getHorario(ag.horario_id)}</td>
-                      <td style={estilo.td}>{formatarDataHora(ag.created_at)}</td>
+                      <td style={estilo.td}>{ag.servico.split(' - ')[0]}</td>
+                      <td style={estilo.td}>{formatarDataCurta(ag.data)} {formatarHora(ag.hora)}</td>
+                      <td style={estilo.td}>
+                        <button style={estilo.btnPerigo} onClick={() => deletarAgendamento(ag.id)}>CANCELAR</button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -178,49 +163,41 @@ export default function Admin() {
           </div>
         )}
 
-        {aba === 'horarios' && (
+        {/* Bloqueios */}
+        {aba === 'bloqueios' && (
           <>
-            <div style={{ backgroundColor: '#111', border: '1px solid #2a2a2a', borderRadius: '4px', padding: '24px', marginBottom: '24px' }}>
-              <p style={{ color: '#c9a84c', letterSpacing: '2px', fontSize: '12px', marginBottom: '20px' }}>ADICIONAR HORARIO</p>
+            <div style={{ ...estilo.secao, padding: '24px' }}>
+              <p style={{ color: '#c9a84c', letterSpacing: '2px', fontSize: '12px', marginBottom: '20px' }}>BLOQUEAR DIA (folga, feriado, etc)</p>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                 <div>
                   <p style={{ color: '#666', fontSize: '12px', marginBottom: '8px' }}>DATA</p>
-                  <input type="date" style={{ ...estilo.input, marginBottom: 0, width: 'auto' }} value={novaData} onChange={e => setNovaData(e.target.value)} />
+                  <input type="date" style={{ ...estilo.input, marginBottom: 0, width: 'auto' }} value={novoBloqueiData} onChange={e => setNovoBloqueioData(e.target.value)} />
                 </div>
                 <div>
-                  <p style={{ color: '#666', fontSize: '12px', marginBottom: '8px' }}>HORA</p>
-                  <input type="time" style={{ ...estilo.input, marginBottom: 0, width: 'auto' }} value={novaHora} onChange={e => setNovaHora(e.target.value)} />
+                  <p style={{ color: '#666', fontSize: '12px', marginBottom: '8px' }}>MOTIVO (opcional)</p>
+                  <input type="text" placeholder="Ex: Folga" style={{ ...estilo.input, marginBottom: 0, width: 'auto' }} value={novoBloqueioMotivo} onChange={e => setNovoBloqueioMotivo(e.target.value)} />
                 </div>
-                <button onClick={adicionarHorario} style={{ ...estilo.btn, width: 'auto', padding: '14px 32px' }}>ADICIONAR</button>
+                <button onClick={adicionarBloqueio} style={{ ...estilo.btn, width: 'auto', padding: '14px 32px' }}>BLOQUEAR</button>
               </div>
             </div>
-
-            <div style={{ backgroundColor: '#111', border: '1px solid #2a2a2a', borderRadius: '4px', overflow: 'auto' }}>
-              {horarios.length === 0 ? (
-                <p style={{ color: '#666', padding: '32px', fontSize: '14px' }}>Nenhum horario cadastrado.</p>
+            <div style={estilo.secao}>
+              {bloqueios.length === 0 ? (
+                <p style={{ color: '#666', padding: '24px', fontSize: '14px' }}>Nenhum dia bloqueado.</p>
               ) : (
                 <table style={estilo.tabela}>
                   <thead>
                     <tr>
                       <th style={estilo.th}>DATA</th>
-                      <th style={estilo.th}>HORA</th>
-                      <th style={estilo.th}>STATUS</th>
+                      <th style={estilo.th}>MOTIVO</th>
                       <th style={estilo.th}>ACAO</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {horarios.map((h) => (
-                      <tr key={h.id}>
-                        <td style={estilo.td}>{formatarData(h.data)}</td>
-                        <td style={estilo.td}>{formatarHora(h.hora)}</td>
-                        <td style={estilo.td}>
-                          <span style={{ color: h.disponivel ? '#25D366' : '#ff6b6b', fontSize: '12px', fontWeight: 'bold' }}>
-                            {h.disponivel ? 'DISPONIVEL' : 'OCUPADO'}
-                          </span>
-                        </td>
-                        <td style={estilo.td}>
-                          <button style={estilo.btnPerigo} onClick={() => deletarHorario(h.id)}>DELETAR</button>
-                        </td>
+                    {bloqueios.map(b => (
+                      <tr key={b.id}>
+                        <td style={estilo.td}>{formatarDataCurta(b.data)}</td>
+                        <td style={estilo.td}>{b.motivo || '-'}</td>
+                        <td style={estilo.td}><button style={estilo.btnPerigo} onClick={() => deletarBloqueio(b.id)}>REMOVER</button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -228,6 +205,41 @@ export default function Admin() {
               )}
             </div>
           </>
+        )}
+
+        {/* Grade */}
+        {aba === 'grade' && (
+          <div style={estilo.secao}>
+            <table style={estilo.tabela}>
+              <thead>
+                <tr>
+                  <th style={estilo.th}>DIA</th>
+                  <th style={estilo.th}>INICIO</th>
+                  <th style={estilo.th}>FIM</th>
+                  <th style={estilo.th}>INTERVALO</th>
+                  <th style={estilo.th}>STATUS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {grade.map(g => (
+                  <tr key={g.id}>
+                    <td style={estilo.td}>{diasSemana[g.dia_semana]}</td>
+                    <td style={estilo.td}>{formatarHora(g.hora_inicio)}</td>
+                    <td style={estilo.td}>{formatarHora(g.hora_fim)}</td>
+                    <td style={estilo.td}>{g.intervalo_minutos} min</td>
+                    <td style={estilo.td}>
+                      <button
+                        style={g.ativo ? estilo.btnPerigo : estilo.btnVerde}
+                        onClick={() => toggleGrade(g.id, g.ativo)}
+                      >
+                        {g.ativo ? 'DESATIVAR' : 'ATIVAR'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
       </div>
