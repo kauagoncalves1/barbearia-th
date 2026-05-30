@@ -54,7 +54,7 @@ export default function Hero({ tema }) {
         width: '100%',
         maxWidth: '320px',
       }}>
-        <a href="https://wa.me/5521986129519" target="_blank" rel="noopener noreferrer" style={{
+        <a href="/agendar" style={{
           backgroundColor: '#c9a84c',
           color: '#0a0a0a',
           padding: '16px 40px',

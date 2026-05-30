@@ -50,9 +50,7 @@ export default function Navbar() {
             {claro ? '🌙' : '☀️'}
           </button>
           <a
-            href="https://wa.me/5521986129519"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/agendar"
             style={{
               backgroundColor: '#c9a84c',
               color: '#0a0a0a',
