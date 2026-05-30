@@ -5,7 +5,7 @@ const servicos = [
   { nome: 'Corte + Barba', descricao: 'Combinacao completa para um visual impecavel do inicio ao fim.', preco: 'R$ 50' },
   { nome: 'Barba Completa', descricao: 'Modelagem, hidratacao e acabamento profissional na barba.', preco: 'R$ 30' },
   { nome: 'Degrade', descricao: 'Transicao perfeita com maquina, tesoura e muito estilo.', preco: 'R$ 25' },
-  { nome: 'Platinado', descricao: 'Coloracao profissional para um visual unico e moderno.', preco: 'A consultar' },
+  { nome: 'Platinado', descricao: 'Coloracao profissional para um visual unico e moderno.', preco: 'R$ 30' },
 ];
 
 export default function Servicos({ tema }) {
