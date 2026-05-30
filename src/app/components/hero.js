@@ -1,4 +1,6 @@
-export default function Hero() {
+export default function Hero({ tema }) {
+  const claro = tema === 'light';
+
   return (
     <section style={{
       minHeight: '100vh',
@@ -8,9 +10,10 @@ export default function Hero() {
       alignItems: 'center',
       textAlign: 'center',
       padding: '120px 24px 120px',
-      background: 'linear-gradient(to bottom, #0a0a0a 0%, #1a1a1a 100%)',
-      position: 'relative',
-      overflow: 'hidden',
+      background: claro
+        ? 'linear-gradient(to bottom, #f5f5f5 0%, #e8e8e8 100%)'
+        : 'linear-gradient(to bottom, #0a0a0a 0%, #1a1a1a 100%)',
+      transition: 'all 0.3s',
     }}>
 
       <div style={{ width: '60px', height: '2px', backgroundColor: '#c9a84c', marginBottom: '24px' }} />
@@ -27,13 +30,14 @@ export default function Hero() {
         marginBottom: '24px',
         textTransform: 'uppercase',
         wordBreak: 'break-word',
+        color: claro ? '#111' : '#fff',
       }}>
         Barbearia<br />
         <span style={{ color: '#c9a84c' }}>TH</span>
       </h1>
 
       <p style={{
-        color: '#999',
+        color: claro ? '#555' : '#999',
         fontSize: 'clamp(15px, 4vw, 18px)',
         maxWidth: '480px',
         lineHeight: 1.7,
@@ -64,8 +68,8 @@ export default function Hero() {
           AGENDAR AGORA
         </a>
         <a href="#servicos" style={{
-          border: '1px solid #444',
-          color: '#fff',
+          border: claro ? '1px solid #999' : '1px solid #444',
+          color: claro ? '#333' : '#fff',
           padding: '16px 40px',
           textDecoration: 'none',
           fontSize: '14px',
@@ -76,16 +80,6 @@ export default function Hero() {
           VER SERVICOS
         </a>
       </div>
-
-      <style>{`
-        @media (min-width: 640px) {
-          .hero-buttons {
-            flex-direction: row !important;
-            max-width: none !important;
-            width: auto !important;
-          }
-        }
-      `}</style>
 
     </section>
   );

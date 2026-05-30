@@ -1,10 +1,13 @@
-export default function Footer() {
+export default function Footer({ tema }) {
+  const claro = tema === 'light';
+
   return (
     <footer style={{
-      backgroundColor: '#050505',
-      borderTop: '1px solid #1f1f1f',
+      backgroundColor: claro ? '#eee' : '#050505',
+      borderTop: claro ? '1px solid #ddd' : '1px solid #1f1f1f',
       padding: '48px 40px',
       textAlign: 'center',
+      transition: 'all 0.3s',
     }}>
 
       <span style={{
@@ -23,12 +26,13 @@ export default function Footer() {
         margin: '32px 0',
         flexWrap: 'wrap',
       }}>
-        <a href="#servicos" style={{ color: '#555', textDecoration: 'none', fontSize: '13px', letterSpacing: '1px' }}>SERVIÇOS</a>
-        <a href="#contato" style={{ color: '#555', textDecoration: 'none', fontSize: '13px', letterSpacing: '1px' }}>CONTATO</a>
-        <a href="https://wa.me/5521986129519" target="_blank" rel="noopener noreferrer" style={{ color: '#555', textDecoration: 'none', fontSize: '13px', letterSpacing: '1px' }}>WHATSAPP</a>
+        <a href="#quemsomos" style={{ color: claro ? '#888' : '#555', textDecoration: 'none', fontSize: '13px', letterSpacing: '1px' }}>QUEM SOMOS</a>
+        <a href="#servicos" style={{ color: claro ? '#888' : '#555', textDecoration: 'none', fontSize: '13px', letterSpacing: '1px' }}>SERVICOS</a>
+        <a href="#contato" style={{ color: claro ? '#888' : '#555', textDecoration: 'none', fontSize: '13px', letterSpacing: '1px' }}>CONTATO</a>
+        <a href="https://wa.me/5521986129519" target="_blank" rel="noopener noreferrer" style={{ color: claro ? '#888' : '#555', textDecoration: 'none', fontSize: '13px', letterSpacing: '1px' }}>WHATSAPP</a>
       </div>
 
-      <p style={{ color: '#333', fontSize: '12px', letterSpacing: '1px' }}>
+      <p style={{ color: claro ? '#aaa' : '#333', fontSize: '12px', letterSpacing: '1px' }}>
         © {new Date().getFullYear()} Barbearia TH. Todos os direitos reservados.
       </p>
 
