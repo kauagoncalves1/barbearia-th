@@ -18,7 +18,8 @@ Site institucional completo com foco em conversao de clientes via WhatsApp. Dese
 - [Next.js 14](https://nextjs.org/) — framework React com App Router
 - [Tailwind CSS](https://tailwindcss.com/) — estilizacao utilitaria
 - [Vercel](https://vercel.com/) — hospedagem e deploy continuo
-
+- [SupaBase] - banco de dados
+  
 ## Como rodar localmente
 
 ```bash
