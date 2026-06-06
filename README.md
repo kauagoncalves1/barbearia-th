@@ -18,26 +18,8 @@ Site institucional completo com foco em conversao de clientes via WhatsApp. Dese
 - [Next.js 14](https://nextjs.org/) — framework React com App Router
 - [Tailwind CSS](https://tailwindcss.com/) — estilizacao utilitaria
 - [Vercel](https://vercel.com/) — hospedagem e deploy continuo
-- [SupaBase] - banco de dados
+- SupaBase - banco de dados
   
-## Como rodar localmente
-
-```bash
-# Clone o repositorio
-git clone https://github.com/kauagoncalves1/barbearia-th.git
-
-# Entre na pasta
-cd barbearia-th
-
-# Instale as dependencias
-npm install
-
-# Rode o servidor de desenvolvimento
-npm run dev
-```
-
-Acesse [http://localhost:3000](http://localhost:3000) no navegador.
-
 ## Deploy
 
 O site e hospedado na Vercel com deploy automatico a cada push na branch `main`.
